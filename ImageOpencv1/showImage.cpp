@@ -33,21 +33,21 @@
 
 Mat scr,srt_gray;
 Mat dst,detected_edge;
-int edgeThresh = 1;
+int Thresh = 0;
 int lowThreshold;
 int const max_lowThreshold = 100;
 int ratio = 3;
 int kernel_size = 3;
-char * window_name = "Edge Map";
+char * window_name = "source image";
+char *binWindowName = "binary image";
+const char* barName = "binaryImageBarname";
 int DELAY = 200;
 
-void CannyThreshold(int, void*)
+void on_trackerbar(int ,void*)
 {
-	blur(srt_gray,detected_edge,Size(3,3)); // canny 没有实现blur ,所以这里预先给blur L 
-	Canny(detected_edge,detected_edge,lowThreshold,lowThreshold * ratio,kernel_size);
-	dst = Scalar::all(0); // 创造matrix的一种方法
-	scr.copyTo(dst,detected_edge);
-	imshow(window_name,dst);
+	threshold(scr,dst,Thresh,255,THRESH_BINARY_INV);
+	
+	imshow(binWindowName,dst);
 
 }
 int display_dst(int delay);
@@ -72,15 +72,13 @@ int main()
 	dst.create(scr.size(),scr.type());
 	cvtColor(scr,srt_gray,CV_BGR2GRAY); // 变成灰度图的方法
 	namedWindow(window_name,CV_WINDOW_AUTOSIZE);
-	for(int i = 150;i >= 0;i= i - 3)
-	{
-		blur(srt_gray,detected_edge,Size(3,3)); // canny 没有实现blur ,所以这里预先给blur L 
-		Canny(detected_edge,detected_edge,i,i * ratio,kernel_size);
-		dst = Scalar::all(0); // 创造matrix的一种方法
-		scr.copyTo(dst,detected_edge);
-		if(display_dst(DELAY) != 0)
-		   return 0;
-	}
+	imshow(window_name,scr);
+	namedWindow(binWindowName,CV_WINDOW_AUTOSIZE);
+
+	createTrackbar(barName,binWindowName,&Thresh,254,on_trackerbar);
+	
+	on_trackerbar(0,0);
+	
 	waitKey();
 	
 	return 0;
